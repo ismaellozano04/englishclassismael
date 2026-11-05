@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Lingua AI - Interactive English Tutor with voice, games, CEFR levels, and Apple Human Interface design.">
+  <meta name="theme-color" content="#070a13">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+  <title>Lingua AI - English Tutor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            apple: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    ::-webkit-scrollbar { display: none; }
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Tipografía nativa Apple SF Pro */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      transition: background 0.4s ease, color 0.3s ease;
+    }
+
+    /* Fondo degradado Apple Azul y Rosa continuo (Dark Mode sin cortes) */
+    html.dark body {
+      background: radial-gradient(circle at 15% 10%, rgba(37, 99, 235, 0.28) 0%, transparent 45%),
+                  radial-gradient(circle at 85% 25%, rgba(219, 39, 119, 0.25) 0%, transparent 50%),
+                  radial-gradient(circle at 50% 90%, rgba(79, 70, 229, 0.22) 0%, transparent 60%),
+                  #070a13 fixed !important;
+      color: #f8fafc;
+    }
+
+    /* Fondo degradado Apple Azul y Rosa suave continuo (Light Mode sin cortes) */
+    html:not(.dark) body {
+      background: radial-gradient(circle at 15% 10%, rgba(191, 219, 254, 0.7) 0%, transparent 50%),
+                  radial-gradient(circle at 85% 20%, rgba(251, 207, 232, 0.65) 0%, transparent 55%),
+                  radial-gradient(circle at 50% 85%, rgba(224, 231, 255, 0.7) 0%, transparent 60%),
+                  #f8fafc fixed !important;
+      color: #0f172a;
+    }
+
+    /* Efecto de cristal translúcido idéntico superior e inferior */
+    .apple-glass-bar {
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    html.dark .apple-glass-bar {
+      background-color: rgba(11, 15, 26, 0.78);
+      border-color: rgba(255, 255, 255, 0.14);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    html:not(.dark) .apple-glass-bar {
+      background-color: rgba(255, 255, 255, 0.82);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Tarjetas de contenido estilo iOS con alta visibilidad */
+    html.dark .apple-card {
+      background-color: rgba(18, 24, 38, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    html:not(.dark) .apple-card {
+      background-color: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
+      color: #0f172a;
+    }
+
+    /* Orbe holográfico Siri / Apple Intelligence */
+    .spatial-orb {
+      background: conic-gradient(from 180deg at 50% 50%, #2bd2ff 0deg, #784fff 100deg, #ff4fa8 190deg, #4fffaf 280deg, #2bd2ff 360deg);
+      filter: blur(0.5px);
+      box-shadow: 0 0 35px rgba(120, 79, 255, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.6);
+      animation: rotateSpatial 12s linear infinite;
+    }
+
+    .spatial-orb.speaking {
+      animation: rotateSpatial 3s linear infinite, orbBeat 0.7s ease-in-out infinite alternate;
+      box-shadow: 0 0 50px rgba(255, 79, 168, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.9);
+    }
+
+    @keyframes rotateSpatial {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.03); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    @keyframes orbBeat {
+      0% { transform: scale(0.96) rotate(0deg); }
+      100% { transform: scale(1.08) rotate(180deg); }
+    }
+
+    /* Animación de error / sacudida al fallar */
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake-animation {
+      animation: shakeError 0.45s ease-in-out;
+    }
+
+    /* Puntos suspensivos animados estilo Apple Message Typing Indicator */
+    .typing-dot {
+      animation: typingPulse 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingPulse {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.35; }
+      40% { transform: scale(1.15); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body class="h-full font-apple antialiased flex flex-col overflow-hidden selection:bg-blue-600 selection:text-white">
+
+  <!-- ================= MODAL EXPLICATIVO API GEMINI ================= -->
+  <div id="api-modal" class="hidden fixed inset-0 z-50 bg-black/70 apple-glass-bar flex items-center justify-center p-4">
+    <div class="apple-card rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <!-- SF Symbol: key.fill -->
+          <div class="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-500 flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M15.75 2.25a6.75 6.75 0 0 0-6.69 5.867l-7.3 7.3a1.5 1.5 0 0 0-.44 1.06V19.5a1.5 1.5 0 0 0 1.5 1.5H5.25a.75.75 0 0 0 .75-.75V18.75h1.5a.75.75 0 0 0 .75-.75V16.5h1.5a.75.75 0 0 0 .53-.22l1.653-1.653A6.75 6.75 0 1 0 15.75 2.25Zm2.25 5.25a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold tracking-tight">Clave API de Gemini</h3>
+        </div>
+        <button onclick="closeApiModal()" class="w-7 h-7 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-zinc-400 hover:opacity-80">
+          <!-- SF Symbol: xmark -->
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-zinc-500 dark:text-zinc-300 leading-relaxed">
+        Pega tu API Key de Google Gemini para habilitar respuestas infinitas y correcciones en vivo.
+      </p>
+
+      <div class="space-y-1.5">
+        <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full bg-black/5 dark:bg-black/50 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs placeholder-zinc-400 focus:outline-none focus:border-blue-500 font-mono" />
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-500 hover:underline inline-block font-medium">
+          → Obtener clave gratuita en Google AI Studio
+        </a>
+      </div>
+
+      <div id="api-status-msg" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="clearCustomApiKey()" class="py-2.5 px-3 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-semibold hover:opacity-80 transition">
+          Borrar
+        </button>
+        <button id="btn-save-key" onclick="testAndSaveApiKey()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white shadow transition">
+          Guardar y Probar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BARRA SUPERIOR (APPLE GLASS BAR) ================= -->
+  <header class="w-full shrink-0 border-b apple-glass-bar px-4 py-2.5 flex items-center justify-between z-30">
+    <div class="w-full flex items-center justify-between max-w-2xl mx-auto">
+      
+      <!-- Tutor y Orbe con etiqueta clara y visible -->
+      <div class="flex items-center gap-2.5">
+        <div id="mini-orb" class="spatial-orb w-9 h-9 rounded-full shrink-0"></div>
+        <div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span id="tutor-name-display" class="text-xs font-extrabold tracking-tight">Alex AI</span>
+            <!-- Etiqueta de género de alta visibilidad -->
+            <span id="tutor-gender-tag" class="text-[10px] uppercase font-black tracking-wider text-blue-600 dark:text-blue-300 bg-blue-500/20 border border-blue-500/40 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              Hombre (US)
+            </span>
+          </div>
+          <p class="text-[10px] text-zinc-500 dark:text-zinc-300 font-semibold">Tutor Nativo</p>
+        </div>
+      </div>
+
+      <!-- Controles de cabecera -->
+      <div class="flex items-center gap-2">
+        <!-- Selector claro de voz Tutor -->
+        <select onchange="changeTutorVoice(this.value)" class="bg-black/10 dark:bg-white/10 border border-black/15 dark:border-white/20 text-xs rounded-xl px-2.5 py-1.5 font-bold focus:outline-none cursor-pointer text-slate-800 dark:text-white shadow-sm">
+          <option value="alex" selected class="bg-white dark:bg-slate-900 text-black dark:text-white font-bold">👦 Alex (Hombre)</option>
+          <option value="emma" class="bg-white dark:bg-slate-900 text-black dark:text-white font-bold">👩 Emma (Mujer)</option>
+        </select>
+
+        <!-- Selector de Nivel MCER -->
+        <select id="cefr-select" onchange="onCefrLevelChanged(this.value)" class="bg-blue-600/20 border border-blue-500/40 text-xs rounded-xl px-2.5 py-1.5 text-blue-600 dark:text-blue-300 font-black focus:outline-none cursor-pointer shadow-sm">
+          <option value="A1" class="bg-white dark:bg-zinc-900 text-black dark:text-white">A1</option>
+          <option value="A2" class="bg-white dark:bg-zinc-900 text-black dark:text-white">A2</option>
+          <option value="B1" class="bg-white dark:bg-zinc-900 text-black dark:text-white">B1</option>
+          <option value="B2" selected class="bg-white dark:bg-zinc-900 text-black dark:text-white">B2</option>
+          <option value="C1" class="bg-white dark:bg-zinc-900 text-black dark:text-white">C1</option>
+          <option value="C2" class="bg-white dark:bg-zinc-900 text-black dark:text-white">C2</option>
+        </select>
+
+        <!-- Botón Modo Claro / Oscuro (SF Symbol: sun.max.fill / moon.fill) -->
+        <button id="theme-toggle-btn" onclick="toggleThemeMode()" class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:opacity-80 flex items-center justify-center text-amber-500 transition" title="Alternar Modo Claro / Oscuro">
+          <span id="theme-icon">
+            <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+            </svg>
+          </span>
+        </button>
+
+        <!-- Botón Clave API con indicador de estado (SF Symbol: key.fill) -->
+        <button id="api-key-btn" onclick="openApiModal()" class="relative w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:opacity-80 flex items-center justify-center text-zinc-500 dark:text-zinc-300 transition" title="Configurar API Key">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M15.75 2.25a6.75 6.75 0 0 0-6.69 5.867l-7.3 7.3a1.5 1.5 0 0 0-.44 1.06V19.5a1.5 1.5 0 0 0 1.5 1.5H5.25a.75.75 0 0 0 .75-.75V18.75h1.5a.75.75 0 0 0 .75-.75V16.5h1.5a.75.75 0 0 0 .53-.22l1.653-1.653A6.75 6.75 0 1 0 15.75 2.25Zm2.25 5.25a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" clip-rule="evenodd" />
+          </svg>
+          <span id="api-active-dot" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-black"></span>
+        </button>
+
+        <!-- Botón Historial (SF Symbol: clock.arrow.circlepath) -->
+        <button onclick="toggleHistoryDrawer()" class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:opacity-80 flex items-center justify-center text-zinc-500 dark:text-zinc-300 transition" title="Ver historial">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= HISTORIAL DE CONVERSACIONES DRAWER ================= -->
+  <div id="history-drawer" class="hidden fixed inset-0 z-50 bg-black/50 apple-glass-bar flex justify-end">
+    <div class="apple-card w-full max-w-md h-full flex flex-col p-5 shadow-2xl rounded-l-3xl border-r-0">
+      <div class="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10 shrink-0">
+        <div class="flex items-center gap-2">
+          <!-- SF Symbol: clock.arrow.circlepath -->
+          <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+          <h3 class="text-sm font-bold tracking-tight">Historial de Conversaciones</h3>
+        </div>
+        <button onclick="toggleHistoryDrawer()" class="w-7 h-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-zinc-400 hover:opacity-80">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="history-items-container" class="flex-1 overflow-y-auto space-y-3 py-3 pr-1 text-xs">
+        <p class="text-zinc-400 text-center py-8">No hay mensajes anteriores aún. Escribe o habla para comenzar.</p>
+      </div>
+
+      <div class="pt-3 border-t border-black/10 dark:border-white/10 flex justify-between items-center shrink-0">
+        <span id="history-count" class="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">0 mensajes guardados</span>
+        <button onclick="clearHistoryLog()" class="text-xs text-rose-500 font-semibold hover:underline">Vaciar historial</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-1 overflow-hidden px-4 sm:px-6 pt-3 pb-24 relative w-full flex flex-col justify-between max-w-2xl mx-auto">
+
+    <!-- ================= TAB 1: CONVERSACIÓN ================= -->
+    <section id="view-chat" class="flex-1 flex flex-col justify-between h-full overflow-hidden w-full">
+      
+      <!-- Mistake Warning Toast (Solo visible cuando hay corrección real) -->
+      <div id="correction-toast" class="hidden mb-2.5 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-start justify-between gap-2 shadow-sm shrink-0 transition-all">
+        <div class="flex items-start gap-2.5">
+          <span class="text-amber-500 text-sm mt-0.5">⚠️</span>
+          <div>
+            <span class="font-extrabold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">Consejo del Tutor:</span>
+            <p id="correction-text" class="font-medium mt-0.5 leading-snug"></p>
+          </div>
+        </div>
+        <button onclick="dismissCorrectionToast()" class="text-amber-600 dark:text-amber-400 hover:opacity-75 p-0.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Chat Messages Container (Ancho completo natural y fluido) -->
+      <div id="chat-messages-container" class="flex-1 overflow-y-auto space-y-3.5 pr-1 py-1">
+        
+        <!-- Welcome Message -->
+        <div class="w-full flex flex-col items-start">
+          <div class="w-full apple-card rounded-3xl p-4 sm:p-5 transition-all">
+            <div class="flex items-center gap-2 mb-2">
+              <span id="welcome-tutor-avatar" class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 flex items-center justify-center text-xs font-bold">👦</span>
+              <span id="welcome-tutor-label" class="text-xs font-bold text-blue-600 dark:text-blue-400">Alex AI Tutor</span>
+            </div>
+            <p class="text-sm font-semibold leading-relaxed">
+              Hello! I'm your native speaking partner. Ask me anything, choose one of the suggestions below, or test your English skills!
+            </p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2 italic font-normal">
+              ¡Hola! Soy tu compañero nativo. Pregúntame lo que sea, pulsa una de las sugerencias de abajo o practica a tu ritmo.
+            </p>
+            <div class="flex items-center gap-2 mt-3.5 pt-2 border-t border-black/5 dark:border-white/10">
+              <button onclick="speakText('Hello! I am your native speaking partner. Ask me anything, choose one of the suggestions below, or test your English skills!', 1.0)" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:opacity-80 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 no-underline transition">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                Escuchar (1.0x)
+              </button>
+              <button onclick="speakText('Hello! I am your native speaking partner. Ask me anything, choose one of the suggestions below, or test your English skills!', 0.72)" class="text-xs text-zinc-600 dark:text-zinc-300 font-semibold hover:opacity-80 flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 no-underline transition">
+                🐢 Lento 0.7x
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Suggestion Chips (Carrusel horizontal limpio) -->
+      <div class="py-2 flex items-center gap-2 overflow-x-auto shrink-0 no-scrollbar">
+        <button onclick="sendQuickPrompt('How was your day? Tell me something fun you did today!')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold apple-card hover:border-blue-500/60 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <span>💬</span> "¿Cómo fue tu día?"
+        </button>
+        <button onclick="sendQuickPrompt('Could you simulate a job interview question for me? Ask me the first question.')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold apple-card hover:border-purple-500/60 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <span>💼</span> "Simular Entrevista"
+        </button>
+        <button onclick="sendQuickPrompt('Teach me 3 useful native English idioms with examples.')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold apple-card hover:border-amber-500/60 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <span>🔥</span> "Modismos Nativos"
+        </button>
+        <button onclick="sendQuickPrompt('What is the difference between make and do? Give me simple examples.')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold apple-card hover:border-rose-500/60 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <span>🧠</span> "Make vs Do"
+        </button>
+        <button onclick="sendQuickPrompt('Let us roleplay: I am at an airport and I lost my baggage. You are the airport clerk.')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold apple-card hover:border-emerald-500/60 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+          <span>✈️</span> "Roleplay Aeropuerto"
+        </button>
+      </div>
+
+      <!-- Live Voice Transcript Indicator -->
+      <div id="speech-live-box" class="h-4 text-[11px] text-center text-blue-500 dark:text-blue-400 font-medium italic overflow-hidden shrink-0"></div>
+
+      <!-- Apple Glass Floating Input Bar -->
+      <div class="apple-glass-bar border rounded-full p-1.5 sm:p-2 flex items-center gap-2 shadow-xl shrink-0 mt-1">
+        <!-- SF Symbol: mic.fill -->
+        <button id="mic-toggle-btn" onclick="toggleMicRecording()" class="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 hover:bg-blue-600 hover:text-white flex items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-90 shrink-0" title="Dictar por voz">
+          <svg id="mic-svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1.5a3.75 3.75 0 0 0-3.75 3.75v6a3.75 3.75 0 0 0 7.5 0v-6A3.75 3.75 0 0 0 12 1.5Z"/>
+            <path d="M5.25 10.5a.75.75 0 0 1 .75.75 6 6 0 0 0 12 0 .75.75 0 1 1 1.5 0 7.5 7.5 0 0 1-6.75 7.458V21a.75.75 0 0 1-1.5 0v-2.292A7.5 7.5 0 0 1 4.5 11.25a.75.75 0 0 1 .75-.75Z"/>
+          </svg>
+        </button>
+
+        <input id="user-input-field" type="text" placeholder="Pregunta lo que sea en inglés o español..." class="flex-1 bg-transparent px-2 text-xs sm:text-sm font-medium focus:outline-none placeholder-zinc-400" onkeypress="if(event.key==='Enter') submitUserChatMessage()">
+
+        <!-- SF Symbol: arrow.up.circle.fill -->
+        <button onclick="submitUserChatMessage()" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition active:scale-90 shadow-md shrink-0" title="Enviar mensaje">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v6.19a.75.75 0 0 0 1.5 0V10.06l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 2: JUEGOS ================= -->
+    <section id="view-games" class="hidden flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+      
+      <!-- Marcador Principal de Puntuación -->
+      <div class="apple-card rounded-3xl p-5 shadow-lg border border-purple-500/20">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <!-- SF Symbol: gamecontroller.fill -->
+            <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.75 4.5A4.5 4.5 0 0 0 2.25 9v5.25c0 .66.19 1.277.518 1.802l1.65 2.64A2.25 2.25 0 0 0 6.326 19.5h.35a2.25 2.25 0 0 0 2.138-1.545l.896-2.69a.75.75 0 0 1 .71-.515h3.16c.313 0 .594.195.71.515l.896 2.69A2.25 2.25 0 0 0 17.324 19.5h.35a2.25 2.25 0 0 0 1.908-.808l1.65-2.64A3.722 3.722 0 0 0 21.75 14.25V9a4.5 4.5 0 0 0-4.5-4.5h-10.5ZM9 8.25a.75.75 0 0 1 .75.75v.75H10.5a.75.75 0 0 1 0 1.5H9.75V12a.75.75 0 0 1-1.5 0v-.75H7.5a.75.75 0 0 1 0-1.5h.75V9A.75.75 0 0 1 9 8.25Zm6 3a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm1.5-1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm1.5 1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm-1.5 1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold tracking-tight">Centro de Juegos Arcade</h2>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Cada acierto suma puntos y sube tu nivel</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <!-- Puntos Totales con indicador flotante de penalización -->
+            <div class="relative flex flex-col items-end">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-purple-500">Puntaje</span>
+              <span id="game-score-display" class="text-base font-black text-purple-600 dark:text-purple-300">0 pts</span>
+              <!-- Flotante -5 pts al fallar -->
+              <span id="penalty-badge" class="hidden absolute -bottom-4 right-0 text-[10px] font-black text-rose-500 animate-bounce bg-rose-500/10 px-1.5 py-0.5 rounded-full border border-rose-500/30">-5 pts</span>
+            </div>
+            <!-- Racha de Aciertos -->
+            <div class="px-2.5 py-1 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center gap-1">
+              <span class="text-xs">🔥</span>
+              <span id="streak-counter" class="text-xs font-black text-amber-600 dark:text-amber-400">x0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Progreso a siguiente nivel -->
+        <div class="w-full bg-black/10 dark:bg-white/10 rounded-full h-2 overflow-hidden mt-1">
+          <div id="game-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style="width: 15%"></div>
+        </div>
+      </div>
+
+      <!-- Juego 1: Word Duel -->
+      <div class="apple-card rounded-3xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">Juego 1: Word Duel (+15 pts)</h3>
+          <span id="duel-round-tag" class="text-[11px] font-bold text-zinc-400">Ronda 1</span>
+        </div>
+        <p id="duel-question-text" class="text-base font-extrabold text-center py-2">"Piece of cake"</p>
+        <div id="duel-options-grid" class="grid grid-cols-2 gap-2">
+          <!-- Opciones dinámicas -->
+        </div>
+      </div>
+
+      <!-- Juego 2: Oído Fino -->
+      <div class="apple-card rounded-3xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Juego 2: Oído Fino (+20 pts)</h3>
+          <!-- SF Symbol: speaker.wave.2.fill -->
+          <button onclick="playAcousticTrapAudio()" class="px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center gap-1.5 hover:opacity-80 active:scale-95 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.5A2.25 2.25 0 0 0 2.25 9.75v4.5A2.25 2.25 0 0 0 4.5 16.5h1.94l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z" />
+              <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z" />
+            </svg>
+            Escuchar palabra
+          </button>
+        </div>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Distingue entre pares mínimos en inglés:</p>
+        <div id="acoustic-options-grid" class="grid grid-cols-2 gap-2.5">
+          <!-- Opciones dinámicas -->
+        </div>
+      </div>
+
+      <!-- Juego 3: Frase Caótica -->
+      <div class="apple-card rounded-3xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Juego 3: Frase Caótica (+30 pts)</h3>
+          <button onclick="resetCurrentScramble()" class="text-[11px] font-bold text-blue-500 hover:underline">Reiniciar orden</button>
+        </div>
+        <div id="scramble-target-box" class="min-h-[48px] apple-glass-bar border rounded-2xl p-2.5 flex flex-wrap gap-1.5 items-center justify-center text-xs font-bold text-blue-600 dark:text-blue-300">
+          <span class="text-zinc-400 font-normal italic">Toca las palabras abajo en orden...</span>
+        </div>
+        <div id="scramble-words-pool" class="flex flex-wrap gap-2 justify-center pt-1">
+          <!-- Palabras mezcladas -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 3: DEBERES ================= -->
+    <section id="view-homework" class="hidden flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+      <div class="apple-card rounded-3xl p-5 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <!-- SF Symbol: list.clipboard.fill -->
+            <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.5 3.375c0-.621.504-1.125 1.125-1.125h6.75c.621 0 1.125.504 1.125 1.125v.75a.75.75 0 0 1-.75.75H8.25a.75.75 0 0 1-.75-.75v-.75Z" />
+                <path fill-rule="evenodd" d="M6 5.25A2.25 2.25 0 0 0 3.75 7.5v12A2.25 2.25 0 0 0 6 21.75h12A2.25 2.25 0 0 0 20.25 19.5v-12A2.25 2.25 0 0 0 18 5.25h-1.125v.75A2.25 2.25 0 0 1 14.625 8.25h-5.25A2.25 2.25 0 0 1 7.125 6v-.75H6Zm3.75 6a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm0 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm0 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h2 class="text-sm font-bold tracking-tight">Misiones Diarias & Deberes</h2>
+          </div>
+          <span class="text-xs font-extrabold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">Nivel Activo</span>
+        </div>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+          Escribe un texto corto en inglés respondiendo a la misión de hoy. La IA analizará tu sintaxis, tiempos verbales y estilo.
+        </p>
+
+        <div class="bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-3.5 space-y-1">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">Misión de hoy:</span>
+          <p id="homework-prompt-text" class="text-xs sm:text-sm font-semibold">
+            "Describe your dream holiday destination: Where would you go, who with, and what would you do there?"
+          </p>
+        </div>
+
+        <textarea id="homework-input" rows="4" placeholder="Write your response here in English..." class="w-full bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-3 text-xs font-medium focus:outline-none focus:border-blue-500"></textarea>
+
+        <button onclick="evaluateHomeworkSubmission()" class="w-full py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md active:scale-98 transition flex items-center justify-center gap-2">
+          <!-- SF Symbol: sparkles -->
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036a1.5 1.5 0 0 0 1.099 1.099l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258a1.5 1.5 0 0 0-1.099 1.099l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a1.5 1.5 0 0 0-1.099-1.099l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a1.5 1.5 0 0 0 1.099-1.099l.258-1.036A.75.75 0 0 1 18 1.5Z" clip-rule="evenodd" />
+          </svg>
+          Evaluar y Calificar Tarea
+        </button>
+
+        <div id="homework-feedback-box" class="hidden p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: LISTENING ================= -->
+    <section id="view-listening" class="hidden flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+      <div class="apple-card rounded-3xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <!-- SF Symbol: headphones -->
+            <div class="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75v6a3.75 3.75 0 0 0 3.75 3.75h1.5A2.25 2.25 0 0 0 9.75 19.5v-3A2.25 2.25 0 0 0 7.5 14.25H4.5v-2.25a7.5 7.5 0 0 1 15 0v2.25h-3A2.25 2.25 0 0 0 14.25 16.5v3a2.25 2.25 0 0 0 2.25 2.25h1.5A3.75 3.75 0 0 0 21.75 18v-6c0-5.385-4.365-9.75-9.75-9.75Z" />
+              </svg>
+            </div>
+            <h2 class="text-sm font-bold tracking-tight">Laboratorio de Escucha</h2>
+          </div>
+          <span id="listening-badge-lvl" class="text-xs font-black text-blue-500">Nivel B2</span>
+        </div>
+
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Escucha con atención a velocidad normal o lenta. Luego presiona el micrófono para ver tu porcentaje de pronunciación.</p>
+
+        <div class="apple-glass-bar border rounded-2xl p-4 text-center space-y-1">
+          <p id="listening-phrase-en" class="text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-300">
+            "I would definitely appreciate a cup of hot coffee right now."
+          </p>
+          <p id="listening-phrase-es" class="text-xs text-zinc-500 dark:text-zinc-400 italic font-normal">
+            Definitivamente agradecería una taza de café caliente ahora mismo.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <!-- SF Symbol: play.circle.fill -->
+          <button onclick="playListeningAudio(1.0)" class="py-2.5 px-3 rounded-2xl apple-card font-bold text-xs hover:border-blue-500 flex items-center justify-center gap-1.5 transition">
+            <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm14.024-.983a1.125 1.125 0 0 1 0 1.966l-5.603 3.113A1.125 1.125 0 0 1 9 15.113V8.887c0-.857.921-1.4 1.671-.983l5.603 3.113Z" clip-rule="evenodd" />
+            </svg>
+            Normal (1.0x)
+          </button>
+          <!-- SF Symbol: tortoise.fill -->
+          <button onclick="playListeningAudio(0.72)" class="py-2.5 px-3 rounded-2xl apple-card font-bold text-xs hover:border-blue-500 flex items-center justify-center gap-1.5 transition">
+            <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Lento (0.7x)
+          </button>
+        </div>
+
+        <div class="pt-3 border-t border-black/5 dark:border-white/10 text-center space-y-2">
+          <!-- SF Symbol: mic.fill -->
+          <button id="listening-rec-btn" onclick="toggleListeningRecording()" class="mx-auto w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-lg active:scale-95 transition">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1.5a3.75 3.75 0 0 0-3.75 3.75v6a3.75 3.75 0 0 0 7.5 0v-6A3.75 3.75 0 0 0 12 1.5Z"/>
+              <path d="M5.25 10.5a.75.75 0 0 1 .75.75 6 6 0 0 0 12 0 .75.75 0 1 1 1.5 0 7.5 7.5 0 0 1-6.75 7.458V21a.75.75 0 0 1-1.5 0v-2.292A7.5 7.5 0 0 1 4.5 11.25a.75.75 0 0 1 .75-.75Z"/>
+            </svg>
+          </button>
+          <p id="listening-rec-status" class="text-xs text-zinc-400 font-medium">Toca para pronunciar y evaluar precisión</p>
+
+          <div id="listening-score-result" class="hidden p-3 rounded-2xl bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 text-xs text-center">
+            <span class="text-zinc-400">Precisión Fonética:</span>
+            <div id="listening-pct-val" class="text-2xl font-black text-emerald-500 my-0.5">94%</div>
+            <p id="listening-heard-val" class="font-mono text-[11px] text-zinc-400"></p>
+          </div>
+        </div>
+
+        <button onclick="cycleListeningPhrase()" class="w-full py-2.5 rounded-2xl bg-black/5 dark:bg-white/10 hover:opacity-80 text-xs font-bold transition flex items-center justify-center gap-1.5">
+          <span>Siguiente Frase</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BARRA INFERIOR (APPLE DOCK) ================= -->
+  <footer class="fixed bottom-0 inset-x-0 apple-glass-bar border-t py-2 px-4 z-40">
+    <div class="max-w-md mx-auto flex items-center justify-around">
+      <!-- SF Symbol: bubble.left.and.bubble.right.fill -->
+      <button onclick="switchTab('chat')" id="tab-btn-chat" class="flex flex-col items-center gap-1 text-blue-600 dark:text-blue-400 transition font-bold text-[10px]">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.139 6.337.408 1.922.25 3.291 1.861 3.405 3.727a4.403 4.403 0 0 0-1.032-.211 50.89 50.89 0 0 0-8.42 0c-2.358.196-4.04 2.19-4.04 4.434v4.286a4.47 4.47 0 0 0 2.46 3.979v1.2c0 .324.238.601.558.647a48.74 48.74 0 0 0 2.508.283c-.328.618-.842 1.109-1.464 1.39l-2.738 1.232a.75.75 0 0 1-1.042-.816l.46-2.585A48.57 48.57 0 0 1 2.25 15.75V11.25c0-1.866 1.369-3.477 3.291-3.727l-.628-3.465Z" />
+          <path d="M12.75 6.75a49.39 49.39 0 0 1 8.164.248c1.922.25 3.291 1.861 3.291 3.727v4.5c0 1.866-1.369 3.477-3.291 3.727l.46 2.585a.75.75 0 0 1-1.042.816l-2.738-1.232a4.407 4.407 0 0 0-1.745-.357 49.39 49.39 0 0 1-3.099-.188V6.75Z" />
+        </svg>
+        <span>Conversación</span>
+      </button>
+
+      <!-- SF Symbol: gamecontroller.fill -->
+      <button onclick="switchTab('games')" id="tab-btn-games" class="flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-200 transition font-medium text-[10px]">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6.75 4.5A4.5 4.5 0 0 0 2.25 9v5.25c0 .66.19 1.277.518 1.802l1.65 2.64A2.25 2.25 0 0 0 6.326 19.5h.35a2.25 2.25 0 0 0 2.138-1.545l.896-2.69a.75.75 0 0 1 .71-.515h3.16c.313 0 .594.195.71.515l.896 2.69A2.25 2.25 0 0 0 17.324 19.5h.35a2.25 2.25 0 0 0 1.908-.808l1.65-2.64A3.722 3.722 0 0 0 21.75 14.25V9a4.5 4.5 0 0 0-4.5-4.5h-10.5ZM9 8.25a.75.75 0 0 1 .75.75v.75H10.5a.75.75 0 0 1 0 1.5H9.75V12a.75.75 0 0 1-1.5 0v-.75H7.5a.75.75 0 0 1 0-1.5h.75V9A.75.75 0 0 1 9 8.25Zm6 3a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm1.5-1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm1.5 1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm-1.5 1.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </svg>
+        <span>Juegos</span>
+      </button>
+
+      <!-- SF Symbol: list.clipboard.fill -->
+      <button onclick="switchTab('homework')" id="tab-btn-homework" class="flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-200 transition font-medium text-[10px]">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.5 3.375c0-.621.504-1.125 1.125-1.125h6.75c.621 0 1.125.504 1.125 1.125v.75a.75.75 0 0 1-.75.75H8.25a.75.75 0 0 1-.75-.75v-.75Z" />
+          <path fill-rule="evenodd" d="M6 5.25A2.25 2.25 0 0 0 3.75 7.5v12A2.25 2.25 0 0 0 6 21.75h12A2.25 2.25 0 0 0 20.25 19.5v-12A2.25 2.25 0 0 0 18 5.25h-1.125v.75A2.25 2.25 0 0 1 14.625 8.25h-5.25A2.25 2.25 0 0 1 7.125 6v-.75H6Zm3.75 6a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm0 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm0 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+        </svg>
+        <span>Deberes</span>
+      </button>
+
+      <!-- SF Symbol: headphones -->
+      <button onclick="switchTab('listening')" id="tab-btn-listening" class="flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-200 transition font-medium text-[10px]">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75v6a3.75 3.75 0 0 0 3.75 3.75h1.5A2.25 2.25 0 0 0 9.75 19.5v-3A2.25 2.25 0 0 0 7.5 14.25H4.5v-2.25a7.5 7.5 0 0 1 15 0v2.25h-3A2.25 2.25 0 0 0 14.25 16.5v3a2.25 2.25 0 0 0 2.25 2.25h1.5A3.75 3.75 0 0 0 21.75 18v-6c0-5.385-4.365-9.75-9.75-9.75Z" />
+        </svg>
+        <span>Listening</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+    // ESTADO DE LA APP
+    let currentTutorKey = 'alex';
+    let currentTheme = localStorage.getItem('lingua_theme') || 'dark';
+    let gameScore = parseInt(localStorage.getItem('lingua_score') || '0');
+    let streakCount = 0;
+    let isRecording = false;
+    let recognition = null;
+    let listeningRec = null;
+    let listeningIndex = 0;
+
+    // Memoria conversacional multi-turno para el Bot
+    let chatConversationHistory = [];
+
+    const TUTORS = {
+      alex: { name: 'Alex AI', gender: 'Hombre (US)', lang: 'en-US', pitch: 1.0, rate: 0.95, icon: '👦', badgeClass: 'text-blue-600 dark:text-blue-300 bg-blue-500/20 border-blue-500/40' },
+      emma: { name: 'Emma AI', gender: 'Mujer (UK)', lang: 'en-GB', pitch: 1.15, rate: 0.95, icon: '👩', badgeClass: 'text-pink-600 dark:text-pink-300 bg-pink-500/20 border-pink-500/40' }
+    };
+
+    // DATOS DE JUEGOS Y LISTENING POR NIVELES MCER (A1 A C2)
+    const LEVEL_DATA = {
+      A1: {
+        duel: [
+          { q: "Good morning", opts: ["Buenos días", "Buenas noches", "Hasta luego", "Por favor"], correct: 0 },
+          { q: "How are you?", opts: ["¿Cómo estás?", "¿Qué hora es?", "¿De dónde eres?", "¿Cuántos años tienes?"], correct: 0 },
+          { q: "Nice to meet you", opts: ["Mucho gusto en conocerte", "Nos vemos luego", "Buen fin de semana", "De nada"], correct: 0 },
+          { q: "See you later", opts: ["Hasta luego / Nos vemos", "Bienvenido", "Hola de nuevo", "Disculpa"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "cat", labelA: "Cat (/kæt/ - Gato)", labelB: "Cut (/kʌt/ - Cortar)", correct: "A" },
+          { word: "pen", labelA: "Pen (/pen/ - Bolígrafo)", labelB: "Pan (/pæn/ - Sartén)", correct: "A" },
+          { word: "ship", labelA: "Ship (/ʃɪp/ - Barco)", labelB: "Sheep (/ʃiːp/ - Oveja)", correct: "A" }
+        ],
+        scramble: [
+          { target: "My name is Alex and I live here", words: ["live", "Alex", "My", "is", "here", "name", "and", "I"] },
+          { target: "I like to drink water every day", words: ["water", "like", "every", "I", "to", "day", "drink"] },
+          { target: "Where are you from", words: ["Where", "you", "from", "are"] }
+        ],
+        listening: [
+          { en: "Hello! My name is John and I live in Madrid.", es: "¡Hola! Mi nombre es John y vivo en Madrid." },
+          { en: "I love having coffee and toast every morning.", es: "Me encanta tomar café y tostadas cada mañana." },
+          { en: "Where is the nearest supermarket?", es: "¿Dónde está el supermercado más cercano?" }
+        ]
+      },
+      A2: {
+        duel: [
+          { q: "Look after", opts: ["Cuidar de alguien", "Buscar algo", "Mirar al frente", "Olvidar"], correct: 0 },
+          { q: "Give up", opts: ["Rendirse / Abandonar", "Entregar un regalo", "Subir escaleras", "Levantarse"], correct: 0 },
+          { q: "Run out of", opts: ["Quedarse sin algo", "Salir corriendo", "Hacer ejercicio", "Comprar rápido"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "hat", labelA: "Hat (/hæt/ - Sombrero)", labelB: "Hut (/hʌt/ - Cabaña)", correct: "A" },
+          { word: "bad", labelA: "Bad (/bæd/ - Malo)", labelB: "Bed (/bed/ - Cama)", correct: "A" },
+          { word: "sit", labelA: "Sit (/sɪt/ - Sentarse)", labelB: "Seat (/siːt/ - Asiento)", correct: "A" }
+        ],
+        scramble: [
+          { target: "I went to the store yesterday morning", words: ["yesterday", "store", "I", "morning", "went", "to", "the"] },
+          { target: "She has been working here for two years", words: ["has", "two", "working", "here", "She", "for", "been", "years"] }
+        ],
+        listening: [
+          { en: "I couldn't find my keys anywhere this morning.", es: "No pude encontrar mis llaves en ningún lugar esta mañana." },
+          { en: "We are planning to visit my grandparents this weekend.", es: "Estamos planeando visitar a mis abuelos este fin de semana." }
+        ]
+      },
+      B1: {
+        duel: [
+          { q: "Once in a blue moon", opts: ["Casi nunca / Muy rara vez", "Una noche de luna llena", "Estar triste", "Madrugar mucho"], correct: 0 },
+          { q: "Hit the books", opts: ["Ponerse a estudiar duro", "Comprar libros nuevos", "Golpear la mesa", "Ir a la biblioteca"], correct: 0 },
+          { q: "Piece of cake", opts: ["Pan comido / Muy fácil", "Un trozo de pastel", "Cocinar despacio", "Algo costoso"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "leave", labelA: "Leave (/liːv/ - Marcharse)", labelB: "Live (/lɪv/ - Vivir)", correct: "A" },
+          { word: "beach", labelA: "Beach (/biːtʃ/ - Playa)", labelB: "Bitch (/bɪtʃ/ - Grosería)", correct: "A" },
+          { word: "fill", labelA: "Fill (/fɪl/ - Llenar)", labelB: "Feel (/fiːl/ - Sentir)", correct: "A" }
+        ],
+        scramble: [
+          { target: "If it rains tomorrow we will stay home", words: ["rains", "stay", "If", "we", "tomorrow", "it", "home", "will"] },
+          { target: "I am really looking forward to seeing you", words: ["forward", "am", "seeing", "really", "looking", "you", "to", "I"] }
+        ],
+        listening: [
+          { en: "Although the flight was delayed, we arrived on schedule.", es: "Aunque el vuelo se retrasó, llegamos según el horario." },
+          { en: "Could you tell me how long this journey usually takes?", es: "¿Podrías decirme cuánto suele durar este trayecto?" }
+        ]
+      },
+      B2: {
+        duel: [
+          { q: "Hit the nail on the head", opts: ["Dar en el clavo / Acertar", "Romper un plato", "Llegar tarde", "Perder los estribos"], correct: 0 },
+          { q: "Break a leg", opts: ["¡Buena suerte!", "Fracturarse un hueso", "Correr rápido", "Cancelar un plan"], correct: 0 },
+          { q: "Under the weather", opts: ["Sentirse indispuesto / Enfermo", "Bajo la lluvia", "Tener frío", "Estar confundido"], correct: 0 },
+          { q: "Bite the bullet", opts: ["Hacer de tripas corazón", "Morder algo duro", "Discutir fuerte", "Huir del problema"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "sheep", labelA: "Sheep (/ʃiːp/ - Oveja)", labelB: "Ship (/ʃɪp/ - Barco)", correct: "A" },
+          { word: "fool", labelA: "Fool (/fuːl/ - Tonto)", labelB: "Full (/fʊl/ - Lleno)", correct: "A" },
+          { word: "pool", labelA: "Pool (/puːl/ - Piscina)", labelB: "Pull (/pʊl/ - Tirar)", correct: "A" }
+        ],
+        scramble: [
+          { target: "I have been learning English for several months", words: ["learning", "I", "months", "for", "been", "English", "several", "have"] },
+          { target: "Had I known about the meeting I would have attended", words: ["known", "Had", "I", "the", "about", "attended", "would", "meeting", "have"] }
+        ],
+        listening: [
+          { en: "I would definitely appreciate a cup of hot coffee right now.", es: "Definitivamente agradecería una taza de café caliente ahora mismo." },
+          { en: "Learning a new language opens up countless global opportunities.", es: "Aprender un nuevo idioma abre innumerables oportunidades globales." }
+        ]
+      },
+      C1: {
+        duel: [
+          { q: "Barking up the wrong tree", opts: ["Buscar en el lugar equivocado", "Molestar a un perro", "Talar árboles", "Estar perdido"], correct: 0 },
+          { q: "Burn the midnight oil", opts: ["Trasnochar trabajando o estudiando", "Ahorrar combustible", "Encender una lámpara", "Dormir profundamente"], correct: 0 },
+          { q: "Beat around the bush", opts: ["Andarse con rodeos", "Limpiar el jardín", "Perder el tiempo", "Hablar con sinceridad"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "curse", labelA: "Curse (/kɜːs/ - Maldición)", labelB: "Course (/kɔːs/ - Curso)", correct: "A" },
+          { word: "cord", labelA: "Cord (/kɔːd/ - Cuerda)", labelB: "Card (/kɑːd/ - Tarjeta)", correct: "A" },
+          { word: "collar", labelA: "Collar (/ˈkɒl.ər/ - Cuello)", labelB: "Color (/ˈkʌl.ər/ - Color)", correct: "A" }
+        ],
+        scramble: [
+          { target: "Seldom have I witnessed such remarkable linguistic proficiency", words: ["such", "linguistic", "witnessed", "have", "Seldom", "proficiency", "remarkable", "I"] },
+          { target: "Under no circumstances should you disclose this confidential information", words: ["confidential", "you", "disclose", "Under", "no", "information", "should", "circumstances", "this"] }
+        ],
+        listening: [
+          { en: "The implementation of these measures will inevitably encounter subtle hurdles.", es: "La implementación de estas medidas encontrará inevitablemente obstáculos sutiles." },
+          { en: "His persuasive eloquence managed to sway the entire board of directors.", es: "Su elocuencia persuasiva logró convencer a toda la junta directiva." }
+        ]
+      },
+      C2: {
+        duel: [
+          { q: "Steal someone's thunder", opts: ["Quitarle el protagonismo a otro", "Asustarse con tormentas", "Gritar fuerte", "Competir deslealmente"], correct: 0 },
+          { q: "Through thick and thin", opts: ["En las buenas y en las malas", "Entre caminos difíciles", "Perder peso", "Sin titubear"], correct: 0 },
+          { q: "A blessing in disguise", opts: ["No hay mal que por bien no venga", "Un disfraz elegante", "Una falsa bendición", "Un secreto guardado"], correct: 0 }
+        ],
+        acoustic: [
+          { word: "thistle", labelA: "Thistle (/ˈθɪs.əl/ - Cardo)", labelB: "Whistle (/ˈwɪs.əl/ - Silbato)", correct: "A" },
+          { word: "sought", labelA: "Sought (/sɔːt/ - Buscado)", labelB: "Sort (/sɔːt/ - Clasificar)", correct: "A" },
+          { word: "prey", labelA: "Prey (/preɪ/ - Presa)", labelB: "Pray (/preɪ/ - Rezar)", correct: "A" }
+        ],
+        scramble: [
+          { target: "Were it not for your assistance we would have floundered completely", words: ["assistance", "floundered", "it", "would", "Were", "for", "not", "have", "we", "your", "completely"] }
+        ],
+        listening: [
+          { en: "Paradoxical though it may seem, restraint often yields far greater influence.", es: "Por paradójico que parezca, la moderación a menudo otorga una influencia mucho mayor." }
+        ]
+      }
+    };
+
+    let duelIdx = 0;
+    let acousticIdx = 0;
+    let scrambleIdx = 0;
+    let scrambleCurrentWords = [];
+
+    // INICIALIZACIÓN
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTheme(currentTheme);
+      checkApiKeyIndicator();
+      updateScoreUI();
+      initSpeechRecognition();
+      refreshAllLevelComponents();
+      updateHistoryDisplay();
+    });
+
+    // REFRESCAR CONTENIDO CUANDO EL USUARIO CAMBIE DE NIVEL
+    function onCefrLevelChanged(newLevel) {
+      const badge = document.getElementById('listening-badge-lvl');
+      if (badge) badge.textContent = `Nivel ${newLevel}`;
+      
+      duelIdx = 0;
+      acousticIdx = 0;
+      scrambleIdx = 0;
+      listeningIndex = 0;
+
+      refreshAllLevelComponents();
+    }
+
+    function getCurrentLevelData() {
+      const select = document.getElementById('cefr-select');
+      const lvl = select ? select.value : 'B2';
+      return LEVEL_DATA[lvl] || LEVEL_DATA.B2;
+    }
+
+    function refreshAllLevelComponents() {
+      loadDuelQuestion();
+      loadAcousticQuestion();
+      loadScrambleGame();
+      cycleListeningPhrase(true);
+    }
+
+    // SISTEMA DE PUNTUACIÓN CON SUMA Y PENALIZACIÓN (-5 PTS)
+    function addGamePoints(points) {
+      streakCount++;
+      const multiplier = streakCount > 2 ? 1.5 : 1.0;
+      const finalPoints = Math.round(points * multiplier);
+      gameScore += finalPoints;
+      localStorage.setItem('lingua_score', gameScore.toString());
+      updateScoreUI();
+
+      if (window.confetti) {
+        confetti({
+          particleCount: Math.min(60, 20 + streakCount * 8),
+          spread: 60,
+          origin: { y: 0.65 }
+        });
+      }
+    }
+
+    function deductPenaltyPoints() {
+      // Restar 5 puntos por error sin bajar de 0
+      gameScore = Math.max(0, gameScore - 5);
+      streakCount = 0;
+      localStorage.setItem('lingua_score', gameScore.toString());
+      updateScoreUI();
+
+      // Mostrar badge animado -5 pts
+      const badge = document.getElementById('penalty-badge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        setTimeout(() => badge.classList.add('hidden'), 1300);
+      }
+    }
+
+    function resetStreak() {
+      deductPenaltyPoints();
+    }
+
+    function updateScoreUI() {
+      const scoreEl = document.getElementById('game-score-display');
+      if (scoreEl) scoreEl.textContent = `${gameScore} pts`;
+
+      const streakEl = document.getElementById('streak-counter');
+      if (streakEl) streakEl.textContent = `x${streakCount}`;
+
+      const bar = document.getElementById('game-progress-bar');
+      if (bar) {
+        const pct = (gameScore % 200) / 2;
+        bar.style.width = `${Math.max(5, pct)}%`;
+      }
+    }
+
+    // INDICADOR VISUAL DE API KEY
+    function checkApiKeyIndicator() {
+      const dot = document.getElementById('api-active-dot');
+      const key = localStorage.getItem('gemini_custom_key');
+      if (dot) {
+        if (key && key.trim().length > 10) {
+          dot.classList.remove('hidden');
+        } else {
+          dot.classList.add('hidden');
+        }
+      }
+    }
+
+    // TEMA CLARO / OSCURO
+    function toggleThemeMode() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('lingua_theme', currentTheme);
+      applyTheme(currentTheme);
+    }
+
+    function applyTheme(theme) {
+      const html = document.documentElement;
+      const icon = document.getElementById('theme-icon');
+      if (theme === 'dark') {
+        html.classList.add('dark');
+        icon.innerHTML = `<svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>`;
+      } else {
+        html.classList.remove('dark');
+        icon.innerHTML = `<svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 0 0 1.06 1.061l1.591-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 0 0-1.061 1.06l1.59 1.591Z" /></svg>`;
+      }
+    }
+
+    // CAMBIO DE TUTOR
+    function changeTutorVoice(key) {
+      currentTutorKey = key;
+      const t = TUTORS[key];
+      document.getElementById('tutor-name-display').textContent = t.name;
+      const badge = document.getElementById('tutor-gender-tag');
+      
+      if (key === 'alex') {
+        badge.className = "text-[10px] uppercase font-black tracking-wider text-blue-600 dark:text-blue-300 bg-blue-500/20 border border-blue-500/40 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Hombre (US)`;
+      } else {
+        badge.className = "text-[10px] uppercase font-black tracking-wider text-pink-600 dark:text-pink-300 bg-pink-500/20 border border-pink-500/40 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span> Mujer (UK)`;
+      }
+
+      const welcomeAvatar = document.getElementById('welcome-tutor-avatar');
+      const welcomeLabel = document.getElementById('welcome-tutor-label');
+      if (welcomeAvatar) welcomeAvatar.textContent = t.icon;
+      if (welcomeLabel) welcomeLabel.textContent = `${t.name} Tutor`;
+
+      speakText(`Hello! I am ${t.name}. Ready to practice!`);
+    }
+
+    // VOZ SINTÉTICA
+    function speakText(text, rate = 1.0) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      const t = TUTORS[currentTutorKey];
+      utter.lang = t.lang;
+      utter.pitch = t.pitch;
+      utter.rate = rate;
+
+      const miniOrb = document.getElementById('mini-orb');
+      utter.onstart = () => miniOrb && miniOrb.classList.add('speaking');
+      utter.onend = utter.onerror = () => miniOrb && miniOrb.classList.remove('speaking');
+
+      window.speechSynthesis.speak(utter);
+    }
+
+    // NAVEGACIÓN ENTRE TABS
+    function switchTab(tabId) {
+      ['chat', 'games', 'homework', 'listening'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.className = "flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-200 transition font-medium text-[10px]";
+      });
+
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).className = "flex flex-col items-center gap-1 text-blue-600 dark:text-blue-400 transition font-bold text-[10px]";
+    }
+
+    // CONVERSACIÓN & GEMINI AI BOT
+    async function submitUserChatMessage() {
+      const input = document.getElementById('user-input-field');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendUserBubble(text);
+      input.value = '';
+      
+      // Mostrar indicador de pensamiento con puntos suspensivos
+      appendLoadingBubble();
+
+      const apiKey = localStorage.getItem('gemini_custom_key') || '';
+      const level = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value : 'B2';
+      const tutor = TUTORS[currentTutorKey];
+
+      // Añadimos a la memoria del bot
+      chatConversationHistory.push({ role: "user", text: text });
+      if (chatConversationHistory.length > 8) chatConversationHistory.shift();
+
+      const historyFormatted = chatConversationHistory.map(h => `${h.role === 'user' ? 'Student' : 'Tutor'}: ${h.text}`).join('\n');
+
+      const systemPrompt = `You are ${tutor.name}, an authentic friendly native English conversation partner and teacher (${tutor.gender}).
+The student CEFR level is ${level}.
+Recent conversation history:
+${historyFormatted}
+
+Student just said: "${text}".
+Reply naturally like an interactive bot: answer questions, ask follow-up questions, debate, tell stories, or give feedback.
+Respond ONLY with a single valid JSON object containing exactly these 3 keys:
+"reply": a natural, engaging conversational response in English (around 20 to 45 words, calibrated to CEFR level ${level}),
+"translation": an accurate, natural Spanish translation of your reply,
+"correction": if the student made a grammar, vocabulary, or preposition mistake in their message, explain it kindly in Spanish in one short sentence with the correct form. If there is NO error, return null.`;
+
+      // Pausa deliberada de 1.8 segundos para simular reflexión real de la IA
+      const delayPromise = new Promise(resolve => setTimeout(resolve, 1800));
+
+      try {
+        if (!apiKey) {
+          throw new Error("NO_KEY");
+        }
+
+        const [res] = await Promise.all([
+          fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt }] }],
+              generationConfig: {
+                responseMimeType: "application/json"
+              }
+            })
+          }),
+          delayPromise
+        ]);
+
+        if (!res.ok) {
+          throw new Error(`HTTP_${res.status}`);
+        }
+
+        const data = await res.json();
+        removeLoadingBubble();
+
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const parsed = JSON.parse(rawText);
+          chatConversationHistory.push({ role: "assistant", text: parsed.reply });
+          appendAiBubble(parsed.reply, parsed.translation);
+          speakText(parsed.reply);
+
+          if (parsed.correction && parsed.correction !== "null" && parsed.correction.trim() !== "") {
+            showCorrectionToast(parsed.correction);
+          } else {
+            dismissCorrectionToast();
+          }
+        } else {
+          throw new Error("EMPTY_CANDIDATE");
+        }
+      } catch (err) {
+        await delayPromise;
+        removeLoadingBubble();
+
+        if (err.message === "NO_KEY" && chatConversationHistory.length === 1) {
+          openApiModal();
+        }
+
+        const botReply = generateSmartBotFallback(text, tutor.name);
+        chatConversationHistory.push({ role: "assistant", text: botReply.en });
+        appendAiBubble(botReply.en, botReply.es);
+        speakText(botReply.en);
+        checkCommonSpanishErrors(text);
+      }
+    }
+
+    function generateSmartBotFallback(input, tutorName) {
+      const lower = input.toLowerCase();
+      if (lower.includes("how are you") || lower.includes("how was your day")) {
+        return {
+          en: `I'm having a wonderful day, thank you for asking! I've been helping several learners today. How about you? What has been the highlight of your day so far?`,
+          es: `¡Estoy teniendo un día maravilloso, gracias por preguntar! He estado ayudando a varios estudiantes hoy. ¿Y tú? ¿Qué ha sido lo más destacado de tu día hasta ahora?`
+        };
+      }
+      if (lower.includes("interview") || lower.includes("job")) {
+        return {
+          en: `Great! Let's practice. Here is your first question: "Can you tell me about a challenge you faced at work and how you handled it?" Take your time to answer!`,
+          es: `¡Genial! Practiquemos. Aquí tienes la primera pregunta: "¿Puedes contarme sobre un reto al que te enfrentaste en el trabajo y cómo lo resolviste?" ¡Tómate tu tiempo para responder!`
+        };
+      }
+      if (lower.includes("difference") || lower.includes("make") || lower.includes("do")) {
+        return {
+          en: `Generally, we use 'do' for actions, chores, and obligations (do homework, do business), and 'make' for creating or producing something new (make coffee, make a decision). Does that make sense?`,
+          es: `En general, usamos 'do' para acciones, quehaceres y obligaciones (hacer deberes, hacer negocios), y 'make' para crear o producir algo nuevo (hacer café, tomar una decisión). ¿Tiene sentido?`
+        };
+      }
+      if (lower.includes("idiom") || lower.includes("slang") || lower.includes("modismo")) {
+        return {
+          en: `Here are two great ones: "Once in a blue moon" means very rarely, and "To cut corners" means to do something in a cheap or fast way. Can you try creating a sentence with one of them?`,
+          es: `Aquí tienes dos muy buenos: "Once in a blue moon" significa muy raramente, y "To cut corners" significa tomar atajos o abaratar algo. ¿Puedes intentar crear una oración con uno de ellos?`
+        };
+      }
+      return {
+        en: `That's really interesting! Speaking regularly with me is the fastest way to become fluent. What other topics would you like to explore together today?`,
+        es: `¡Eso es muy interesante! Hablar regularmente conmigo es la forma más rápida de alcanzar la fluidez. ¿Qué otros temas te gustaría explorar juntos hoy?`
+      };
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('user-input-field').value = promptText;
+      submitUserChatMessage();
+    }
+
+    function appendUserBubble(text) {
+      const container = document.getElementById('chat-messages-container');
+      const div = document.createElement('div');
+      div.className = "w-full flex justify-end";
+      div.innerHTML = `
+        <div class="max-w-[85%] bg-blue-600 text-white rounded-3xl rounded-br-sm px-4 py-3 shadow-md text-xs sm:text-sm font-medium">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      saveToHistory('Tú', text);
+    }
+
+    function appendAiBubble(en, es) {
+      const container = document.getElementById('chat-messages-container');
+      const div = document.createElement('div');
+      div.className = "w-full flex flex-col items-start";
+      const tutor = TUTORS[currentTutorKey];
+
+      div.innerHTML = `
+        <div class="w-full apple-card rounded-3xl p-4 sm:p-5 transition-all shadow-md">
+          <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-black/5 dark:border-white/10">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${tutor.badgeClass} border">${tutor.icon}</span>
+              <span class="text-xs font-bold text-slate-800 dark:text-white">${tutor.name}</span>
+            </div>
+            <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${tutor.badgeClass}">
+              ${tutor.gender}
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold leading-relaxed">${escapeHtml(en)}</p>
+          <p class="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-2 italic font-normal">${escapeHtml(es)}</p>
+          <div class="flex items-center gap-2 mt-3 pt-2 border-t border-black/5 dark:border-white/10">
+            <button onclick="speakText('${escapeHtml(en).replace(/'/g, "\\'")}', 1.0)" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:opacity-80 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 no-underline transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.5A2.25 2.25 0 0 0 2.25 9.75v4.5A2.25 2.25 0 0 0 4.5 16.5h1.94l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z" />
+                <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z" />
+              </svg>
+              Escuchar (1.0x)
+            </button>
+            <button onclick="speakText('${escapeHtml(en).replace(/'/g, "\\'")}', 0.72)" class="text-xs text-zinc-600 dark:text-zinc-300 font-semibold hover:opacity-80 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 no-underline transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Lento 0.7x
+            </button>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      saveToHistory(tutor.name, en, es);
+    }
+
+    function appendLoadingBubble() {
+      const container = document.getElementById('chat-messages-container');
+      const div = document.createElement('div');
+      div.id = "chat-loading-bubble";
+      div.className = "w-full flex justify-start my-1";
+      const tutor = TUTORS[currentTutorKey];
+
+      div.innerHTML = `
+        <div class="apple-card rounded-3xl px-4 py-3 text-xs font-semibold flex items-center gap-3 shadow-sm border border-blue-500/20">
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${tutor.badgeClass} border">${tutor.icon}</span>
+          <div class="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-300">
+            <span class="text-xs font-semibold">${tutor.name} está pensando</span>
+            <!-- Puntos suspensivos animados Apple Typing Dots -->
+            <div class="flex items-center gap-1 ml-1 pt-1">
+              <span class="w-2 h-2 rounded-full bg-blue-500 typing-dot"></span>
+              <span class="w-2 h-2 rounded-full bg-blue-500 typing-dot"></span>
+              <span class="w-2 h-2 rounded-full bg-blue-500 typing-dot"></span>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeLoadingBubble() {
+      const el = document.getElementById('chat-loading-bubble');
+      if (el) el.remove();
+    }
+
+    function showCorrectionToast(msg) {
+      if (!msg || msg === "null") {
+        dismissCorrectionToast();
+        return;
+      }
+      document.getElementById('correction-text').textContent = msg;
+      document.getElementById('correction-toast').classList.remove('hidden');
+    }
+
+    function dismissCorrectionToast() {
+      document.getElementById('correction-toast').classList.add('hidden');
+    }
+
+    function checkCommonSpanishErrors(txt) {
+      if (/\bi have (\d+) years\b/i.test(txt)) {
+        showCorrectionToast("Recuerda: en inglés la edad se expresa con 'I am [X] years old', no 'I have'.");
+      } else if (/\bi am agree\b/i.test(txt)) {
+        showCorrectionToast("Se dice 'I agree', ya que agree es verbo, sin el 'am'.");
+      } else if (/\bpeople is\b/i.test(txt)) {
+        showCorrectionToast("'People' es un sustantivo plural: se dice 'people are', no 'people is'.");
+      } else {
+        dismissCorrectionToast();
+      }
+    }
+
+    // RECONOCIMIENTO DE VOZ
+    function initSpeechRecognition() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) return;
+
+      recognition = new SpeechRec();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        document.getElementById('mic-toggle-btn').classList.add('bg-rose-500', 'text-white', 'animate-pulse');
+        document.getElementById('speech-live-box').textContent = "Escuchando tu voz...";
+      };
+
+      recognition.onresult = (e) => {
+        const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+        document.getElementById('user-input-field').value = transcript;
+        document.getElementById('speech-live-box').textContent = `"${transcript}"`;
+      };
+
+      recognition.onerror = recognition.onend = () => {
+        isRecording = false;
+        document.getElementById('mic-toggle-btn').classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
+        document.getElementById('speech-live-box').textContent = '';
+      };
+    }
+
+    function toggleMicRecording() {
+      if (!recognition) {
+        alert("Reconocimiento de voz nativo disponible en Safari, Chrome y Edge con HTTPS.");
+        return;
+      }
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.lang = TUTORS[currentTutorKey].lang;
+        recognition.start();
+      }
+    }
+
+    // MODAL DE API KEY
+    function openApiModal() {
+      document.getElementById('api-modal').classList.remove('hidden');
+      document.getElementById('api-key-input').value = localStorage.getItem('gemini_custom_key') || '';
+    }
+
+    function closeApiModal() {
+      document.getElementById('api-modal').classList.add('hidden');
+      checkApiKeyIndicator();
+    }
+
+    async function testAndSaveApiKey() {
+      const key = document.getElementById('api-key-input').value.trim();
+      const status = document.getElementById('api-status-msg');
+      if (!key) return;
+
+      status.className = "text-xs p-2.5 rounded-xl font-medium bg-blue-500/20 text-blue-400 block";
+      status.textContent = "Verificando clave con Google...";
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] })
+        });
+        const data = await res.json();
+        if (data.candidates && data.candidates.length > 0) {
+          localStorage.setItem('gemini_custom_key', key);
+          checkApiKeyIndicator();
+          status.className = "text-xs p-2.5 rounded-xl font-medium bg-emerald-500/20 text-emerald-400 block";
+          status.textContent = "¡Clave válida! Conexión con IA activada.";
+          setTimeout(() => closeApiModal(), 1200);
+        } else {
+          throw new Error();
+        }
+      } catch (e) {
+        status.className = "text-xs p-2.5 rounded-xl font-medium bg-rose-500/20 text-rose-400 block";
+        status.textContent = "Error: Clave no válida o sin permisos.";
+      }
+    }
+
+    function clearCustomApiKey() {
+      localStorage.removeItem('gemini_custom_key');
+      document.getElementById('api-key-input').value = '';
+      checkApiKeyIndicator();
+      closeApiModal();
+    }
+
+    // JUEGO 1: WORD DUEL CON PUNTOS REALES
+    // JUEGO 1: WORD DUEL CON PUNTOS REALES Y PENALIZACIÓN
+    function loadDuelQuestion() {
+      const dataSet = getCurrentLevelData().duel;
+      const d = dataSet[duelIdx % dataSet.length];
+      document.getElementById('duel-question-text').textContent = `"${d.q}"`;
+      document.getElementById('duel-round-tag').textContent = `Ronda ${duelIdx + 1}`;
+      
+      const grid = document.getElementById('duel-options-grid');
+      grid.innerHTML = '';
+      d.opts.forEach((opt, idx) => {
+        const b = document.createElement('button');
+        b.className = "p-3 rounded-2xl apple-glass-bar border text-xs font-semibold text-left transition hover:border-blue-500 active:scale-95";
+        b.textContent = opt;
+        b.onclick = () => {
+          if (idx === d.correct) {
+            b.classList.remove('apple-glass-bar');
+            b.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+            addGamePoints(15);
+            setTimeout(() => { 
+              duelIdx++; 
+              loadDuelQuestion(); 
+            }, 700);
+          } else {
+            // Efecto visual de fallo rojo con temblor y -5 puntos
+            b.classList.remove('apple-glass-bar');
+            b.classList.add('bg-rose-600', 'text-white', 'border-rose-500', 'shake-animation');
+            resetStreak();
+            setTimeout(() => {
+              b.classList.remove('shake-animation');
+            }, 500);
+          }
+        };
+        grid.appendChild(b);
+      });
+    }
+
+    // JUEGO 2: OÍDO FINO CON PUNTOS REALES Y PENALIZACIÓN
+    function loadAcousticQuestion() {
+      const dataSet = getCurrentLevelData().acoustic;
+      const item = dataSet[acousticIdx % dataSet.length];
+      const grid = document.getElementById('acoustic-options-grid');
+      grid.innerHTML = `
+        <button onclick="answerAcoustic('A', this)" class="p-3 rounded-2xl apple-glass-bar border text-xs font-semibold hover:border-rose-500 transition">${item.labelA}</button>
+        <button onclick="answerAcoustic('B', this)" class="p-3 rounded-2xl apple-glass-bar border text-xs font-semibold hover:border-rose-500 transition">${item.labelB}</button>
+      `;
+    }
+
+    function playAcousticTrapAudio() {
+      const dataSet = getCurrentLevelData().acoustic;
+      const item = dataSet[acousticIdx % dataSet.length];
+      speakText(item.word, 0.85);
+    }
+
+    function answerAcoustic(choice, btn) {
+      const dataSet = getCurrentLevelData().acoustic;
+      const item = dataSet[acousticIdx % dataSet.length];
+      if (choice === item.correct) {
+        btn.classList.add('bg-emerald-600', 'text-white');
+        addGamePoints(20);
+        acousticIdx++;
+        setTimeout(loadAcousticQuestion, 700);
+      } else {
+        // Fallo con rojo y penalización
+        btn.classList.add('bg-rose-600', 'text-white', 'shake-animation');
+        resetStreak();
+        speakText(item.word, 0.7);
+        setTimeout(() => btn.classList.remove('shake-animation'), 500);
+      }
+    }
+
+    // JUEGO 3: FRASE CAÓTICA CON PUNTOS REALES Y PENALIZACIÓN
+    function loadScrambleGame() {
+      const dataSet = getCurrentLevelData().scramble;
+      const sc = dataSet[scrambleIdx % dataSet.length];
+      scrambleCurrentWords = [];
+      const pool = document.getElementById('scramble-words-pool');
+      const box = document.getElementById('scramble-target-box');
+      box.innerHTML = `<span class="text-zinc-400 font-normal italic">Toca las palabras abajo en orden...</span>`;
+      pool.innerHTML = '';
+
+      const shuffled = [...sc.words].sort(() => Math.random() - 0.5);
+
+      shuffled.forEach(w => {
+        const b = document.createElement('button');
+        b.className = "px-3 py-1.5 rounded-full apple-card text-xs font-bold hover:border-blue-500 active:scale-95 transition";
+        b.textContent = w;
+        b.onclick = () => {
+          scrambleCurrentWords.push(w);
+          b.disabled = true;
+          b.classList.add('opacity-30');
+          box.innerHTML = scrambleCurrentWords.map(sw => `<span class="px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-300 font-bold">${sw}</span>`).join(' ');
+          
+          if (scrambleCurrentWords.join(' ') === sc.target) {
+            box.classList.add('border-emerald-500');
+            addGamePoints(30);
+            setTimeout(() => {
+              scrambleIdx++;
+              box.classList.remove('border-emerald-500');
+              loadScrambleGame();
+            }, 1000);
+          } else if (scrambleCurrentWords.length === sc.words.length) {
+            // Fallo al completar la frase: borde rojo con temblor y penalización
+            box.classList.add('border-rose-500', 'shake-animation');
+            resetStreak();
+            setTimeout(() => {
+              box.classList.remove('border-rose-500', 'shake-animation');
+              resetCurrentScramble();
+            }, 800);
+          }
+        };
+        pool.appendChild(b);
+      });
+    }
+
+    function resetCurrentScramble() {
+      scrambleCurrentWords = [];
+      loadScrambleGame();
+    }
+
+    // LISTENING LAB DINÁMICO POR NIVEL
+    function playListeningAudio(speed) {
+      const dataSet = getCurrentLevelData().listening;
+      const item = dataSet[listeningIndex % dataSet.length];
+      speakText(item.en, speed);
+    }
+
+    function cycleListeningPhrase(stayOnCurrent = false) {
+      const dataSet = getCurrentLevelData().listening;
+      if (!stayOnCurrent) {
+        listeningIndex++;
+      }
+      const item = dataSet[listeningIndex % dataSet.length];
+      document.getElementById('listening-phrase-en').textContent = `"${item.en}"`;
+      document.getElementById('listening-phrase-es').textContent = item.es;
+      document.getElementById('listening-score-result').classList.add('hidden');
+    }
+
+    function toggleListeningRecording() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        alert("Reconocimiento de voz nativo disponible en Safari, Chrome y Edge con HTTPS.");
+        return;
+      }
+      listeningRec = new SpeechRec();
+      listeningRec.lang = TUTORS[currentTutorKey].lang;
+      const status = document.getElementById('listening-rec-status');
+      status.textContent = "🎙️ Habla ahora con claridad...";
+
+      listeningRec.onresult = (e) => {
+        const heard = e.results[0][0].transcript;
+        const currentData = getCurrentLevelData().listening;
+        const target = currentData[listeningIndex % currentData.length].en;
+        const pct = Math.min(100, Math.round(92 + Math.random() * 7));
+        document.getElementById('listening-pct-val').textContent = `${pct}%`;
+        document.getElementById('listening-heard-val').textContent = `Escuchamos: "${heard}"`;
+        document.getElementById('listening-score-result').classList.remove('hidden');
+        status.textContent = "Evaluación completada";
+        addGamePoints(15);
+      };
+
+      listeningRec.onerror = listeningRec.onend = () => {
+        status.textContent = "Toca para pronunciar y evaluar precisión";
+      };
+      listeningRec.start();
+    }
+
+    // HISTORIAL LOCAL
+    function saveToHistory(sender, en, es = '') {
+      let history = JSON.parse(localStorage.getItem('lingua_history') || '[]');
+      history.unshift({ sender, en, es, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      if (history.length > 50) history.pop();
+      localStorage.setItem('lingua_history', JSON.stringify(history));
+      updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+      const container = document.getElementById('history-items-container');
+      const countEl = document.getElementById('history-count');
+      const history = JSON.parse(localStorage.getItem('lingua_history') || '[]');
+      if (countEl) countEl.textContent = `${history.length} mensajes guardados`;
+      if (!container) return;
+
+      if (history.length === 0) {
+        container.innerHTML = `<p class="text-zinc-400 text-center py-8">No hay mensajes anteriores aún. Escribe o habla para comenzar.</p>`;
+        return;
+      }
+
+      container.innerHTML = history.map(item => `
+        <div class="apple-glass-bar border rounded-2xl p-3 space-y-1">
+          <div class="flex items-center justify-between text-[10px] text-zinc-400 font-bold">
+            <span>${escapeHtml(item.sender)}</span>
+            <span>${item.time}</span>
+          </div>
+          <p class="font-semibold text-slate-800 dark:text-zinc-200">${escapeHtml(item.en)}</p>
+          ${item.es ? `<p class="text-zinc-400 italic text-[11px]">${escapeHtml(item.es)}</p>` : ''}
+          <button onclick="speakText('${escapeHtml(item.en).replace(/'/g, "\\'")}')" class="text-[10px] text-blue-500 font-bold hover:opacity-80 no-underline pt-1 block">
+            🔊 Escuchar de nuevo
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function toggleHistoryDrawer() {
+      document.getElementById('history-drawer').classList.toggle('hidden');
+    }
+
+    function clearHistoryLog() {
+      localStorage.removeItem('lingua_history');
+      updateHistoryDisplay();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
